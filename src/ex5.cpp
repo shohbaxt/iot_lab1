@@ -1,13 +1,14 @@
-// Exercise 2: Button toggles GREEN LED
+// Exercise 5: Snapshot light sensor on button press
 
 #include "Arduino.h"
 
-#define GREEN_LED_PIN 27
-#define BUTTON_PIN    25   // active high (external pull-down)
+#define YELLOW_LED_PIN 12
+#define BUTTON_PIN     25   // active high (external pull-down)
+#define LIGHT_PIN      33
 
-#define DEBOUNCE_MS   50
+#define DEBOUNCE_MS 50
+#define FLASH_MS    100
 
-bool greenState = false;
 int lastReading = LOW;
 int stableState = LOW;
 unsigned long lastChangeTime = 0;
@@ -16,9 +17,10 @@ unsigned long lastChangeTime = 0;
 void setup(void)
 {
     Serial.begin(115200);
-    pinMode(GREEN_LED_PIN, OUTPUT);
+    analogReadResolution(12);   // 0..4095
+    pinMode(YELLOW_LED_PIN, OUTPUT);
     pinMode(BUTTON_PIN, INPUT);
-    digitalWrite(GREEN_LED_PIN, LOW);
+    digitalWrite(YELLOW_LED_PIN, LOW);
 }
 
 /****************************************************/
@@ -34,11 +36,15 @@ void loop(void)
     if ((millis() - lastChangeTime) > DEBOUNCE_MS && reading != stableState) {
         stableState = reading;
 
-        // Toggle on press (rising edge)
+        // Take snapshot on press (rising edge)
         if (stableState == HIGH) {
-            greenState = !greenState;
-            digitalWrite(GREEN_LED_PIN, greenState ? HIGH : LOW);
-            Serial.println(greenState ? "GREEN=1" : "GREEN=0");
+            int raw = analogRead(LIGHT_PIN);
+            Serial.print("snapshot=");
+            Serial.println(raw);
+
+            digitalWrite(YELLOW_LED_PIN, HIGH);
+            delay(FLASH_MS);
+            digitalWrite(YELLOW_LED_PIN, LOW);
         }
     }
 }
