@@ -1,5 +1,3 @@
-// Exercise 4: Light sensor -> LED band (exactly one LED ON)
-
 #include "Arduino.h"
 
 #define RED_LED_PIN    26
@@ -8,40 +6,37 @@
 #define YELLOW_LED_PIN 12
 #define LIGHT_PIN      33
 
-#define READ_INTERVAL_MS 500
-
-const int ledPins[4]    = { BLUE_LED_PIN, GREEN_LED_PIN, YELLOW_LED_PIN, RED_LED_PIN };
-const char *bandNames[4] = { "BLUE", "GREEN", "YELLOW", "RED" };
-
-unsigned long lastReadTime = 0;
-
-/****************************************************/
 void setup(void)
 {
     Serial.begin(115200);
-    analogReadResolution(12);   // 0..4095
-
-    for (int i = 0; i < 4; i++) {
-        pinMode(ledPins[i], OUTPUT);
-        digitalWrite(ledPins[i], LOW);
-    }
+    pinMode(RED_LED_PIN, OUTPUT);
+    pinMode(GREEN_LED_PIN, OUTPUT);
+    pinMode(BLUE_LED_PIN, OUTPUT);
+    pinMode(YELLOW_LED_PIN, OUTPUT);
 }
 
-/****************************************************/
 void loop(void)
 {
-    if (millis() - lastReadTime >= READ_INTERVAL_MS) {
-        lastReadTime = millis();
+    int raw = analogRead(LIGHT_PIN);
 
-        int raw = analogRead(LIGHT_PIN);
-        int band = raw / 1024;          // 0-1023 -> 0, ..., 3072-4095 -> 3
-        if (band > 3) band = 3;
+    digitalWrite(BLUE_LED_PIN, LOW);
+    digitalWrite(GREEN_LED_PIN, LOW);
+    digitalWrite(YELLOW_LED_PIN, LOW);
+    digitalWrite(RED_LED_PIN, LOW);
 
-        for (int i = 0; i < 4; i++) {
-            digitalWrite(ledPins[i], i == band ? HIGH : LOW);
-        }
-
-        Serial.print("band=");
-        Serial.println(bandNames[band]);
+    if (raw <= 1023) {
+        digitalWrite(BLUE_LED_PIN, HIGH);
+        Serial.println("band=BLUE");
+    } else if (raw <= 2047) {
+        digitalWrite(GREEN_LED_PIN, HIGH);
+        Serial.println("band=GREEN");
+    } else if (raw <= 3071) {
+        digitalWrite(YELLOW_LED_PIN, HIGH);
+        Serial.println("band=YELLOW");
+    } else {
+        digitalWrite(RED_LED_PIN, HIGH);
+        Serial.println("band=RED");
     }
+
+    delay(500);
 }

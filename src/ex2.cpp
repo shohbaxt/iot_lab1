@@ -1,44 +1,34 @@
-// Exercise 2: Button toggles GREEN LED
-
 #include "Arduino.h"
 
 #define GREEN_LED_PIN 27
-#define BUTTON_PIN    25   // active high (external pull-down)
+#define BUTTON_PIN    25
 
-#define DEBOUNCE_MS   50
+int lastButton = LOW;
+int greenOn = 0;
 
-bool greenState = false;
-int lastReading = LOW;
-int stableState = LOW;
-unsigned long lastChangeTime = 0;
-
-/****************************************************/
 void setup(void)
 {
     Serial.begin(115200);
     pinMode(GREEN_LED_PIN, OUTPUT);
     pinMode(BUTTON_PIN, INPUT);
-    digitalWrite(GREEN_LED_PIN, LOW);
 }
 
-/****************************************************/
 void loop(void)
 {
-    int reading = digitalRead(BUTTON_PIN);
+    int button = digitalRead(BUTTON_PIN);
 
-    if (reading != lastReading) {
-        lastChangeTime = millis();
-        lastReading = reading;
-    }
-
-    if ((millis() - lastChangeTime) > DEBOUNCE_MS && reading != stableState) {
-        stableState = reading;
-
-        // Toggle on press (rising edge)
-        if (stableState == HIGH) {
-            greenState = !greenState;
-            digitalWrite(GREEN_LED_PIN, greenState ? HIGH : LOW);
-            Serial.println(greenState ? "GREEN=1" : "GREEN=0");
+    if (button == HIGH && lastButton == LOW) {
+        if (greenOn == 0) {
+            greenOn = 1;
+            digitalWrite(GREEN_LED_PIN, HIGH);
+            Serial.println("GREEN=1");
+        } else {
+            greenOn = 0;
+            digitalWrite(GREEN_LED_PIN, LOW);
+            Serial.println("GREEN=0");
         }
     }
+
+    lastButton = button;
+    delay(50);
 }
